@@ -369,13 +369,54 @@ const fileInfo = document.getElementById('fileInfo');
 const progressWrap = document.getElementById('progressWrap');
 const progressFill = document.getElementById('progressFill');
 const progressText = document.getElementById('progressText');
-const errorBox = document.getElementById('errorBox');
+const errorBox = document.getElementById('errorBox');let selectedFile = null;
+let jobId = null;
+let inputMode = 'file';
+
+const tabUpload = document.getElementById('tabUpload');
+const tabUrl = document.getElementById('tabUrl');
+const urlZone = document.getElementById('urlZone');
+const urlInput = document.getElementById('urlInput');
+
+function setTab(mode) {
+  inputMode = mode;
+  const activeStyle = 'padding:10px 25px; border-radius:25px; border:2px solid var(--neon-purple); background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink)); color:#fff; font-weight:600; cursor:pointer;';
+  const inactiveStyle = 'padding:10px 25px; border-radius:25px; border:2px solid #333; background:#1a1a2e; color:#aaa; font-weight:600; cursor:pointer;';
+  if (mode === 'file') {
+    tabUpload.style.cssText = activeStyle;
+    tabUrl.style.cssText = inactiveStyle;
+    document.getElementById('dropZone').style.display = 'block';
+    urlZone.style.display = 'none';
+    document.getElementById('extractBtn').disabled = !selectedFile;
+  } else {
+    tabUrl.style.cssText = activeStyle;
+    tabUpload.style.cssText = inactiveStyle;
+    document.getElementById('dropZone').style.display = 'none';
+    urlZone.style.display = 'block';
+    validateUrl();
+  }
+}
+tabUpload.addEventListener('click', () => setTab('file'));
+tabUrl.addEventListener('click', () => setTab('url'));
+urlInput.addEventListener('input', validateUrl);
+
+function validateUrl() {
+  const url = urlInput.value.trim();
+  const ytPattern = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch|shorts|embed)|youtu\.be\/)/i;
+  const btn = document.getElementById('extractBtn');
+  if (ytPattern.test(url)) {
+    btn.disabled = false;
+    return true;
+  } else {
+    btn.disabled = true;
+    return false;
+  }
+}
 const resultsCard = document.getElementById('resultsCard');
 const uploadCard = document.getElementById('uploadCard');
 const clipsList = document.getElementById('clipsList');
 
-let selectedFile = null;
-let jobId = null;
+
 
 dropZone.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
