@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClipKaro — AI Viral Clip Extractor</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --neon-pink: #ff2d95;
+  --neon-purple: #a855f7;
+  --neon-blue: #00d4ff;
+  --neon-green: #00ff88;
+  --bg-dark: #0a0a1a;
+  --bg-card: #12122a;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: var(--bg-dark);
+  color: #fff;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Animated background */
+.bg-anim {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: -1;
+  background: 
+    radial-gradient(ellipse at 20% 20%, rgba(168,85,247,0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(255,45,149,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(0,212,255,0.08) 0%, transparent 60%),
+    var(--bg-dark);
+  animation: bgShift 15s ease-in-out infinite alternate;
+}
+@keyframes bgShift {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(30deg); }
+}
+
+.container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+
+/* Glowing Logo */
+.logo {
+  text-align: center; margin-bottom: 10px;
+}
+.logo h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 3.5rem; font-weight: 900;
+  background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple), var(--neon-blue));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 20px rgba(255,45,149,0.6))
+          drop-shadow(0 0 40px rgba(168,85,247,0.4));
+  animation: glowPulse 3s ease-in-out infinite;
+  letter-spacing: 2px;
+}
+@keyframes glowPulse {
+  0%, 100% { filter: drop-shadow(0 0 20px rgba(255,45,149,0.6)) drop-shadow(0 0 40px rgba(168,85,247,0.4)); }
+  50% { filter: drop-shadow(0 0 30px rgba(255,45,149,0.9)) drop-shadow(0 0 60px rgba(168,85,247,0.6)); }
+}
+.tagline {
+  text-align: center; color: #888; font-size: 1.1rem; margin-bottom: 40px;
+  text-shadow: 0 0 10px rgba(0,212,255,0.3);
+}
+.tagline span {
+  color: var(--neon-green);
+  text-shadow: 0 0 10px rgba(0,255,136,0.6);
+  font-weight: 600;
+}
+
+/* Upload Card */
+.card {
+  background: var(--bg-card);
+  border: 1px solid rgba(168,85,247,0.3);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 0 40px rgba(168,85,247,0.15), inset 0 0 60px rgba(168,85,247,0.05);
+  margin-bottom: 30px;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: ''; position: absolute; top: 0; left: -100%;
+  width: 100%; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--neon-pink), var(--neon-blue), transparent);
+  animation: scanLine 3s linear infinite;
+}
+@keyframes scanLine {
+  0% { left: -100%; } 100% { left: 100%; }
+}
+
+.drop-zone {
+  border: 2px dashed rgba(168,85,247,0.5);
+  border-radius: 15px;
+  padding: 60px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: rgba(168,85,247,0.05);
+}
+.drop-zone:hover, .drop-zone.dragover {
+  border-color: var(--neon-pink);
+  background: rgba(255,45,149,0.08);
+  box-shadow: 0 0 30px rgba(255,45,149,0.2);
+  transform: scale(1.01);
+}
+.drop-zone .icon { font-size: 3.5rem; margin-bottom: 15px; }
+.drop-zone h3 {
+  font-size: 1.3rem; margin-bottom: 8px;
+  text-shadow: 0 0 15px rgba(0,212,255,0.5);
+}
+.drop-zone p { color: #888; font-size: 0.9rem; }
+#fileInput { display: none; }
+
+/* Options */
+.options {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px; margin: 25px 0;
+}
+.opt-group label {
+  display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem;
+  color: var(--neon-blue);
+  text-shadow: 0 0 8px rgba(0,212,255,0.4);
+}
+.opt-group select, .opt-group input {
+  width: 100%; padding: 12px 15px;
+  background: #0d0d20; border: 1px solid rgba(0,212,255,0.3);
+  border-radius: 10px; color: #fff; font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  outline: none; transition: all 0.3s;
+}
+.opt-group select:focus {
+  border-color: var(--neon-blue);
+  box-shadow: 0 0 15px rgba(0,212,255,0.3);
+}
+
+/* Buttons */
+.btn {
+  display: block; width: 100%;
+  padding: 18px; font-size: 1.2rem; font-weight: 700;
+  font-family: 'Orbitron', sans-serif; letter-spacing: 1px;
+  color: #fff; border: none; border-radius: 15px; cursor: pointer;
+  background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+  box-shadow: 0 0 25px rgba(255,45,149,0.4);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 0 40px rgba(255,45,149,0.6);
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Progress */
+.progress-wrap { display: none; margin-top: 25px; }
+.progress-bar {
+  height: 8px; background: #1a1a35; border-radius: 10px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--neon-pink), var(--neon-purple), var(--neon-blue));
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(255,45,149,0.6);
+  transition: width 0.5s ease;
+  animation: shimmer 1.5s linear infinite;
+}
+@keyframes shimmer {
+  0% { filter: brightness(1); } 50% { filter: brightness(1.3); } 100% { filter: brightness(1); }
+}
+.progress-text {
+  text-align: center; margin-top: 10px; color: var(--neon-blue);
+  text-shadow: 0 0 10px rgba(0,212,255,0.5);
+  font-weight: 500;
+}
+
+/* Results */
+.results { display: none; }
+.results h2 {
+  font-family: 'Orbitron', sans-serif;
+  text-align: center; margin-bottom: 25px; font-size: 1.8rem;
+  text-shadow: 0 0 20px rgba(0,255,136,0.5);
+  color: var(--neon-green);
+}
+.clip-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(0,255,136,0.25);
+  border-radius: 15px; padding: 20px; margin-bottom: 15px;
+  display: flex; align-items: center; gap: 20px;
+  transition: all 0.3s ease;
+}
+.clip-card:hover {
+  border-color: var(--neon-green);
+  box-shadow: 0 0 25px rgba(0,255,136,0.15);
+  transform: translateX(5px);
+}
+.clip-rank {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2rem; font-weight: 900;
+  min-width: 60px; text-align: center;
+  background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 10px rgba(0,255,136,0.5));
+}
+.clip-info { flex: 1; }
+.clip-info .score {
+  display: inline-block;
+  padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;
+  background: rgba(0,255,136,0.15); color: var(--neon-green);
+  border: 1px solid rgba(0,255,136,0.4);
+  margin-bottom: 8px;
+}
+.clip-info .hook {
+  color: #ccc; font-size: 0.9rem; margin-bottom: 5px;
+  font-style: italic;
+}
+.clip-info .meta { color: #666; font-size: 0.8rem; }
+.clip-info .meta .sub-badge {
+  color: var(--neon-blue); font-weight: 600;
+}
+.download-btn {
+  padding: 12px 25px; border-radius: 10px; border: none; cursor: pointer;
+  font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.95rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+  box-shadow: 0 0 15px rgba(0,212,255,0.3);
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+.download-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(0,212,255,0.5);
+}
+
+/* Features */
+.features {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 15px; margin-top: 40px;
+}
+.feature {
+  text-align: center; padding: 20px 10px;
+  background: rgba(168,85,247,0.05);
+  border: 1px solid rgba(168,85,247,0.2);
+  border-radius: 12px;
+}
+.feature .emoji { font-size: 2rem; margin-bottom: 8px; }
+.feature h4 { font-size: 0.9rem; margin-bottom: 5px; color: var(--neon-blue); }
+.feature p { font-size: 0.75rem; color: #888; }
+
+/* Footer */
+.footer {
+  text-align: center; margin-top: 40px; color: #555; font-size: 0.85rem;
+}
+.footer .glow { color: var(--neon-pink); text-shadow: 0 0 8px rgba(255,45,149,0.5); }
+
+.error {
+  background: rgba(255,50,50,0.1); border: 1px solid rgba(255,50,50,0.4);
+  color: #ff8888; padding: 15px; border-radius: 10px; margin-top: 15px;
+  display: none; text-align: center;
+}
+
+@media (max-width: 600px) {
+  .logo h1 { font-size: 2.2rem; }
+  .card { padding: 25px 15px; }
+  .clip-card { flex-direction: column; text-align: center; }
+}
+</style>
+</head>
+<body>
+<div class="bg-anim"></div>
+
+<div class="container">
+  <div class="logo">
+    <h1>⚡ ClipKaro ⚡</h1>
+  </div>
+  <p class="tagline">AI Viral Clip Extractor — <span>100% FREE</span> • No Watermark • No Expiry</p>
+
+  <div class="card" id="uploadCard">
+    <div class="drop-zone" id="dropZone">
+      <div class="icon">🎬</div>
+      <h3>Drop your video here</h3>
+      <p>or click to browse — MP4, MOV, AVI, MKV, WEBM (max 500MB, 1-30 min)</p>
+      <input type="file" id="fileInput" accept="video/*">
+    </div>
+
+    <div id="fileInfo" style="display:none; margin-top:15px; text-align:center; color: var(--neon-green);"></div>
+
+    <div class="options">
+      <div class="opt-group">
+        <label>🎯 Number of Clips</label>
+        <select id="numClips">
+          <option value="3">3 clips</option>
+          <option value="5" selected>5 clips</option>
+          <option value="7">7 clips</option>
+          <option value="10">10 clips</option>
+        </select>
+      </div>
+      <div class="opt-group">
+        <label>⏱️ Clip Length</label>
+        <select id="clipLength">
+          <option value="15">15 seconds</option>
+          <option value="30" selected>30 seconds</option>
+          <option value="60">60 seconds</option>
+        </select>
+      </div>
+      <div class="opt-group">
+        <label>📐 Aspect Ratio</label>
+        <select id="aspect">
+          <option value="9:16" selected>9:16 Vertical (Shorts/Reels)</option>
+          <option value="1:1">1:1 Square</option>
+          <option value="16:9">16:9 Horizontal</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn" id="extractBtn" disabled>🚀 Extract Viral Clips</button>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-text" id="progressText">Uploading...</div>
+    </div>
+
+    <div class="error" id="errorBox"></div>
+  </div>
+
+  <div class="card results" id="resultsCard">
+    <h2>🔥 Your Viral Clips Are Ready!</h2>
+    <div id="clipsList"></div>
+    <button class="btn" id="resetBtn" style="margin-top:20px; background: linear-gradient(135deg, #333, #555); box-shadow: none;">↺ Process Another Video</button>
+  </div>
+
+  <div class="features">
+    <div class="feature"><div class="emoji">🤖</div><h4>AI Detection</h4><p>Finds viral moments automatically</p></div>
+    <div class="feature"><div class="emoji">📊</div><h4>Virality Score</h4><p>Each clip ranked 1-100</p></div>
+    <div class="feature"><div class="emoji">📝</div><h4>Auto Subtitles</h4><p>Hindi + English burned-in</p></div>
+    <div class="feature"><div class="emoji">📱</div><h4>9:16 Ready</h4><p>Shorts/Reels optimized</p></div>
+    <div class="feature"><div class="emoji">🆓</div><h4>No Watermark</h4><p>100% free forever</p></div>
+  </div>
+
+  <div class="footer">
+    Made with <span class="glow">💜</span> by <span class="glow">ClipKaro</span> — Extract. Post. Go Viral. 🚀
+  </div>
+</div>
+
+<script>
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const extractBtn = document.getElementById('extractBtn');
+const fileInfo = document.getElementById('fileInfo');
+const progressWrap = document.getElementById('progressWrap');
+const progressFill = document.getElementById('progressFill');
+const progressText = document.getElementById('progressText');
+const errorBox = document.getElementById('errorBox');
+const resultsCard = document.getElementById('resultsCard');
+const uploadCard = document.getElementById('uploadCard');
+const clipsList = document.getElementById('clipsList');
+
+let selectedFile = null;
+let jobId = null;
+
+dropZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+['dragover', 'dragenter'].forEach(ev => {
+  dropZone.addEventListener(ev, (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+});
+['dragleave', 'drop'].forEach(ev => {
+  dropZone.addEventListener(ev, (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
+});
+dropZone.addEventListener('drop', (e) => handleFile(e.dataTransfer.files[0]));
+
+function handleFile(file) {
+  if (!file) return;
+  const validTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/webm'];
+  if (!validTypes.includes(file.type) && !file.name.match(/\.(mp4|mov|avi|mkv|webm)$/i)) {
+    showError('Invalid file type. Please use MP4, MOV, AVI, MKV, or WEBM.');
+    return;
+  }
+  if (file.size > 500 * 1024 * 1024) {
+    showError('File too large. Maximum 500MB.');
+    return;
+  }
+  selectedFile = file;
+  fileInfo.style.display = 'block';
+  fileInfo.innerHTML = `✅ <strong>${file.name}</strong> (${(file.size/1024/1024).toFixed(1)} MB)`;
+  extractBtn.disabled = false;
+  hideError();
+}
+
+function showError(msg) {
+  errorBox.textContent = '❌ ' + msg;
+  errorBox.style.display = 'block';
+}
+function hideError() { errorBox.style.display = 'none'; }
+
+function setProgress(pct, text) {
+  progressWrap.style.display = 'block';
+  progressFill.style.width = pct + '%';
+  progressText.textContent = text;
+}
+
+extractBtn.addEventListener('click', async () => {
+  if (!selectedFile) return;
+  hideError();
+  extractBtn.disabled = true;
+  setProgress(5, '📤 Uploading video...');
+
+  try {
+    // Step 1: Upload
+    const formData = new FormData();
+    formData.append('video', selectedFile);
+    const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+    const uploadData = await uploadRes.json();
+    if (!uploadRes.ok) throw new Error(uploadData.error || 'Upload failed');
+    
+    jobId = uploadData.job_id;
+    setProgress(20, `✅ Uploaded! Duration: ${Math.round(uploadData.duration)}s — 🤖 AI analyzing...`);
+
+    // Step 2: Extract (with fake progress animation)
+    let prog = 20;
+    const progTimer = setInterval(() => {
+      prog = Math.min(prog + 2, 90);
+      const msgs = ['🤖 Transcribing audio...', '🎯 Finding viral moments...', '✂️ Cutting clips...', '📝 Burning subtitles...', '✨ Adding final touches...'];
+      setProgress(prog, msgs[Math.floor(prog / 20) % msgs.length]);
+    }, 2000);
+
+    const extractRes = await fetch('/api/extract', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        job_id: jobId,
+        num_clips: parseInt(document.getElementById('numClips').value),
+        clip_length: parseInt(document.getElementById('clipLength').value),
+        aspect: document.getElementById('aspect').value
+      })
+    });
+    clearInterval(progTimer);
+    const extractData = await extractRes.json();
+    if (!extractRes.ok) throw new Error(extractData.error || 'Extraction failed');
+
+    setProgress(100, '🎉 Done!');
+    setTimeout(() => showResults(extractData), 800);
+
+  } catch (err) {
+    showError(err.message);
+    extractBtn.disabled = false;
+    progressWrap.style.display = 'none';
+  }
+});
+
+function showResults(data) {
+  uploadCard.style.display = 'none';
+  resultsCard.style.display = 'block';
+  clipsList.innerHTML = '';
+
+  // Sort by score descending for display
+  const sorted = [...data.clips].sort((a, b) => b.score - a.score);
+
+  sorted.forEach((clip, idx) => {
+    const card = document.createElement('div');
+    card.className = 'clip-card';
+    card.innerHTML = `
+      <div class="clip-rank">#${idx + 1}</div>
+      <div class="clip-info">
+        <span class="score">🔥 Virality: ${clip.score}/100</span>
+        <div class="hook">"${clip.hook_text || 'Viral moment'}..."</div>
+        <div class="meta">
+          ⏱️ ${clip.duration}s &nbsp;•&nbsp; ${clip.start}s → ${clip.end}s &nbsp;•&nbsp;
+          <span class="sub-badge">${clip.has_subtitles ? '📝 Subtitles ✓' : ''}</span> &nbsp;•&nbsp;
+          💡 ${clip.reason}
+        </div>
+      </div>
+      <button class="download-btn" onclick="downloadClip('${clip.download_url}', '${clip.filename}')">⬇ Download</button>
+    `;
+    clipsList.appendChild(card);
+  });
+
+  resultsCard.scrollIntoView({ behavior: 'smooth' });
+}
+
+function downloadClip(url, filename) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  location.reload();
+});
+</script>
+</body>
+</html>
