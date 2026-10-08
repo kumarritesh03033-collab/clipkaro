@@ -274,13 +274,20 @@ body {
 <body>
 <div class="bg-anim"></div>
 
-<div class="container">
+<div class="container">    
+      
   <div class="logo">
     <h1>⚡ ClipKaro ⚡</h1>
   </div>
   <p class="tagline">AI Viral Clip Extractor — <span>100% FREE</span> • No Watermark • No Expiry</p>
 
   <div class="card" id="uploadCard">
+    <div class="tabs" style="display:flex; gap:10px; margin-bottom:20px; justify-content:center;">
+      <button type="button" class="tab-btn active" id="tabUpload" style="padding:10px 25px; border-radius:25px; border:2px solid var(--neon-purple); background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink)); color:#fff; font-weight:600; cursor:pointer; font-family:'Poppins',sans-serif;">📁 Upload File</button>
+      <button type="button" class="tab-btn" id="tabUrl" style="padding:10px 25px; border-radius:25px; border:2px solid #333; background:#1a1a2e; color:#aaa; font-weight:600; cursor:pointer; font-family:'Poppins',sans-serif;">🔗 YouTube Link</button>
+    </div>
+
+
     <div class="drop-zone" id="dropZone">
       <div class="icon">🎬</div>
       <h3>Drop your video here</h3>
@@ -288,7 +295,14 @@ body {
       <input type="file" id="fileInput" accept="video/*">
     </div>
 
-    <div id="fileInfo" style="display:none; margin-top:15px; text-align:center; color: var(--neon-green);"></div>
+        <div id="urlZone" style="display:none; text-align:center; padding:30px 20px; border:2px dashed var(--neon-blue); border-radius:15px; margin-bottom:10px;">
+      <div style="font-size:40px; margin-bottom:10px;">🔗</div>
+      <h3 style="margin-bottom:10px;">Paste YouTube Link</h3>
+      <p style="color:#aaa; font-size:13px; margin-bottom:15px;">Paste any YouTube video URL below</p>
+      <input type="url" id="urlInput" placeholder="https://www.youtube.com/watch?v=..." style="width:100%; max-width:450px; padding:12px 18px; border-radius:25px; border:2px solid #333; background:#0a0a1a; color:#fff; font-size:14px; outline:none; text-align:center;">
+    </div>
+
+<div id="fileInfo" style="display:none; margin-top:15px; text-align:center; color: var(--neon-green);"></div>
 
     <div class="options">
       <div class="opt-group">
