@@ -333,45 +333,7 @@ def upload_video():
         "video_path": str(video_path)
     })
 
-@app.route('/api/download-url', methods=['POST'])
-
-def download_url():
-        """Download video from YouTube URL using yt-dlp"""
-    data = request.get_json()
-    url = data.get('url', '').strip() if data else ''
-    if not url:
-        return jsonify({"error": "No URL provided"}), 400
-    import re
-    yt_pattern = re.compile(r'^(https?://)?(www\.)?(youtube\.com/(watch|shorts|embed)|youtu\.be/)', re.I)
-    if not yt_pattern.match(url):
-        return jsonify({"error": "Invalid YouTube URL"}), 400
-    job_id = str(uuid.uuid4())[:8]
-    video_path = UPLOADS_DIR / f"{job_id}.mp4"
-    try:
-        cmd = ['yt-dlp', '--format', 'best[height<=720]/best', '--output', str(video_path), '--no-playlist', '--max-filesize', '500M', '--quiet', '--no-warnings', url]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-        if not video_path.exists():
-            err = result.stderr.strip()[-500:] if result.stderr else 'Unknown error'
-            return jsonify({"error": f"Download failed. YouTube may be blocking this server. Try uploading the video file directly."}), 400
-        info = get_video_info(video_path)
-        if info["duration"] < 60:
-            video_path.unlink()
-            return jsonify({"error": "Video too short (minimum 1 minute)"}), 400
-        if info["duration"] > 1800:
-            video_path.unlink()
-            return jsonify({"error": "Video too long (maximum 30 minutes)"}), 400
-        return jsonify({"job_id": job_id, "filename": f"youtube_{job_id}.mp4", "duration": round(info["duration"], 1), "width": info["width"], "height": info["height"]})
-    except subprocess.TimeoutExpired:
-        if video_path.exists():
-            video_path.unlink()
-        return jsonify({"error": "Download timed out. Try a shorter video or upload the file directly."}), 400
-    except FileNotFoundError:
-        return jsonify({"error": "Video downloader not installed on server"}), 500
-    except Exception as e:
-        if video_path.exists():
-            video_path.unlink()
-        return jsonify({"error": f"Download failed: {str(e)[:200]}"}), 400
-    @app.route('/api/extract', methods=['POST'])
+@app.route('/api/extract', methods=['POST'])
 def extract_clips():
     """Extract viral clips from uploaded video"""
     data = request.get_json()
