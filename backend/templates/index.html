@@ -459,22 +459,7 @@ function setProgress(pct, text) {
   progressText.textContent = text;
 }
 
-extractBtn.addEventListener('click', async () => {
-  if (!selectedFile) return;
-  hideError();
-  extractBtn.disabled = true;
-  setProgress(5, '📤 Uploading video...');
-
-  try {
-    // Step 1: Upload
-    const formData = new FormData();
-    formData.append('video', selectedFile);
-    const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
-    const uploadData = await uploadRes.json();
-    if (!uploadRes.ok) throw new Error(uploadData.error || 'Upload failed');
-    
-    jobId = uploadData.job_id;
-    setProgress(20, `✅ Uploaded! Duration: ${Math.round(uploadData.duration)}s — 🤖 AI analyzing...`);
+extractBtn.addEventListener('click', async () => {   hideError();   extractBtn.disabled = true;    try {     if (inputMode === 'url') {       const url = urlInput.value.trim();       if (!validateUrl() || !url) throw new Error('Please enter a valid YouTube URL');       setProgress(5, '🔗 Downloading from YouTube...');        const dlRes = await fetch('/api/download-url', {         method: 'POST',         headers: { 'Content-Type': 'application/json' },         body: JSON.stringify({ url: url })       });       const dlData = await dlRes.json();       if (!dlRes.ok) throw new Error(dlData.error || 'Download failed');        jobId = dlData.job_id;       setProgress(20, `✅ Downloaded! Duration: ${Math.round(dlData.duration)}s — 🤖 AI analyzing...`);     } else {       if (!selectedFile) return;       setProgress(5, '📤 Uploading video...');        const formData = new FormData();       formData.append('video', selectedFile);       const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });       const uploadData = await uploadRes.json();       if (!uploadRes.ok) throw new Error(uploadData.error || 'Upload failed');        jobId = uploadData.job_id;       setProgress(20, `✅ Uploaded! Duration: ${Math.round(uploadData.duration)}s — 🤖 AI analyzing...`);     }
 
     // Step 2: Extract (with fake progress animation)
     let prog = 20;
