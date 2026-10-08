@@ -294,7 +294,7 @@ body {
     <div class="drop-zone" id="dropZone">
       <div class="icon">🎬</div>
       <h3>Drop your video here</h3>
-      <p>or click to browse — MP4, MOV, AVI, MKV, WEBM (max 500MB, 1-30 min)</p>
+      <p>or click to browse — MP4, MOV, AVI, MKV, WEBM (max 1GB, 1-30 min)</p>
       <input type="file" id="fileInput" accept="video/*">
     </div>
 
@@ -443,8 +443,8 @@ function handleFile(file) {
     showError('Invalid file type. Please use MP4, MOV, AVI, MKV, or WEBM.');
     return;
   }
-  if (file.size > 500 * 1024 * 1024) {
-    showError('File too large. Maximum 500MB.');
+  if (file.size > 1024 * 1024 * 1024) {
+    showError('File too large. Maximum 1GB.');
     return;
   }
   selectedFile = file;
