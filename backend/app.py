@@ -109,7 +109,7 @@ def find_viral_moments(segments, duration, num_clips=5, clip_length=30):
                     "reason": "Auto-selected segment",
                     "hook_text": ""
                 })
-        return moments
+        return moments, segments
     
     # Viral indicator words (English + Hindi/Hinglish)
     hook_words = [
